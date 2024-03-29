@@ -2,13 +2,20 @@
 > [**UVEB: A Large-scale Benchmark and Baseline Towards Real-World
 Underwater Video Enhancement**]()  
 > Yaofeng Xie1 Lingwei Kong2 Kai Chen2 Ziqiang Zheng3 Xiao Yu2 Zhibin Yu1,2,† Bing Zheng1,2
+
 1College of Electronic Engineering,Ocean University of China
+
 2Key Laboratory of Ocean Observation and Information of Hainan Province,
 Sanya Oceanographic Institution, Ocean University of China
-3Department of Computer Science and Engineering,The Hong Kong University of Science and Technology  
-> CVPR 2024
+
+3Department of Computer Science and Engineering,The Hong Kong University of Science and Technology
+
+† corresponding author: yuzhibin@ouc.edu.cn; Project website: https://github.com/yzbouc/UVEB
+
 This repository contains the official implementation and dataset of the CVPR2024 paper "UVEB: A Large-scale Benchmark and Baseline Towards Real-World
 Underwater Video Enhancement"
+
+
 > Learning-based underwater image enhancement (UIE)
 methods have made great progress. However, the lack of
 large-scale and high-quality paired training samples has
