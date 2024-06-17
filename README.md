@@ -42,7 +42,7 @@ update later
 - [ ] Data Release.
 - [ ] Code Release.
 - **2024.02.27:** Accepted by CVPR 2024!
-- Test dataset is aviable at [https://pan.baidu.com/s/14dl6K_KKi5of8aafhLqOXA](https://pan.baidu.com/s/1SJgSEbN_JCL1Tw1mwV2fAg)  extract code: 1234
+- Test dataset is aviable at https://pan.baidu.com/s/14dl6K_KKi5of8aafhLqOXA.  extract code: 1234
 - Train dataset is aviable at https://pan.baidu.com/s/1A-Z6kbYAiCy95d_DLrdDBg. exreact code:1234
 - 
 We are trying to upload a copy of dataset to the Terabox cloud drive for researchers outside of China to download and use the data conveniently.
