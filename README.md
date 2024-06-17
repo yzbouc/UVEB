@@ -39,7 +39,7 @@ videos, UVE-Net completes video enhancement better. Experiments show the effecti
 ## Method
 update later
 ## Update
-- [ ] Data Release.
+- [√] Data Release.
 - [ ] Code Release.
 - **2024.02.27:** Accepted by CVPR 2024!
 - Test dataset is aviable at https://pan.baidu.com/s/14dl6K_KKi5of8aafhLqOXA.  extract code: 1234
