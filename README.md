@@ -52,5 +52,6 @@ videos, UVE-Net completes video enhancement better. Experiments show the effecti
 > > ![Alt text](/Pictures/4.png)
 #### Results on UIEB
 > ![Alt text](/Pictures/5.png)
+> UVE-Net did not use the UIEB dataset for training, and this result was obtained by testing all data from the UIEB dataset.
 #### Results on CUDIE
 > ![Alt text](/Pictures/6.png)
