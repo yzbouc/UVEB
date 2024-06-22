@@ -37,7 +37,8 @@ videos, UVE-Net completes video enhancement better. Experiments show the effecti
 > ![Alt text](/Pictures/1.png)
 > ![Alt text2](/Pictures/2.png)
 ## Method
-update later
+> ![Alt text2](/Pictures/8.png)
+> 
 ## Update
 - [ ] Code Release.
 - **2024.06.17:** The UVEB dataset has been published. 
