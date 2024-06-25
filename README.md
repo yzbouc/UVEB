@@ -51,7 +51,7 @@ videos, UVE-Net completes video enhancement better. Experiments show the effecti
 - Python 3 (Recommend to use Anaconda)
 - PyTorch 1.10.1: ```conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge```
 - Install dependent packages :```pip install -r requirements.txt```
-- Install DSTNet :```python setup.py develop```
+- Install UVE-Net :```python setup.py develop```
 ## Get Started
 #### Pretrained models
 - Models are available in ```'UVE-Net/pretrained/large_net_g.pth'```
