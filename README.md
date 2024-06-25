@@ -54,8 +54,9 @@ videos, UVE-Net completes video enhancement better. Experiments show the effecti
 - Install DSTNet :```python setup.py develop```
 ## Get Started
 #### Pretrained models
-- Models are available in 'UVE-Net/pretrained/large_net_g.pth'
+- Models are available in ```'UVE-Net/pretrained/large_net_g.pth'```
 #### Dataset Organization Form
+If you prepare your own dataset, please follow the following form like UEVB:
 ```
 |--dataset  
     |--blur  
@@ -75,6 +76,23 @@ videos, UVE-Net completes video enhancement better. Experiments show the effecti
         	:
         |--video n
 ```
+#### Training
+- Download training dataset like above form.
+- Run the following commands:
+```
+Single GPU
+python basicsr/train.py -opt options/train/Deblur/train_Deblur_GOPRO.yml
+Multi-GPUs
+python -m torch.distributed.launch --nproc_per_node=8 --master_port=4321 basicsr/train.py -opt options/train/Deblur/train_Deblur_GOPRO.yml --launcher pytorch
+```
+#### Testing
+- Models are available in ```'UVE-Net/experiments/'.```
+- Organize your dataset(UVEB) like the above form.
+- Run the following commands:
+```
+python basicsr/test.py -opt options/test/Deblur/test_Deblur_GOPRO.yml
+cd results
+```
 ## Experimental Results
 #### Results on UVEB
 > ![Alt text](/Pictures/3.png)
@@ -85,3 +103,13 @@ videos, UVE-Net completes video enhancement better. Experiments show the effecti
 > UVE-Net did not use the UIEB dataset for training, and this result was obtained by testing the full UIEB dataset.
 #### Results on CUDIE
 > ![Alt text](/Pictures/6.png)
+## Citation
+```
+@inproceedings{xie2024uveb,
+  title={UVEB: A Large-scale Benchmark and Baseline Towards Real-World Underwater Video Enhancement},
+  author={Xie, Yaofeng and Kong, Lingwei and Chen, Kai and Zheng, Ziqiang and Yu, Xiao and Yu, Zhibin and Zheng, Bing},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={22358--22367},
+  year={2024}
+}
+```
