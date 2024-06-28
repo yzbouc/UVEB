@@ -12,13 +12,6 @@ from einops import rearrange
 class Deblur_samll(nn.Module):
     def __init__(self, num_feat=32, num_block=15):
         super().__init__()
-        # extractor & reconstruction
-        #self.feat_extractor = nn.Conv3d(3, num_feat, (1, 3, 3), 1, (0, 1, 1), bias=True)
-        #self.recons = nn.Conv3d(num_feat, 3, (1, 3, 3), 1, (0, 1, 1), bias=True)
-        ## 
-        ## mini_restore
-        #restor-￡?n_feats0-kao lv32 or xian 24
-        #xian 3bian-24,look xia ,ruhe jinxing
         self.n_feats0=num_feat
         self.n_feats=num_feat
         self.num_feat=num_feat
@@ -26,18 +19,11 @@ class Deblur_samll(nn.Module):
         self.A2=nn.Sequential(make_layer(ResidualBlockNoBN, 10, num_feat=num_feat))
         self.Block1=nn.Sequential(make_layer(ResidualBlockNoBN, 3, num_feat=num_feat*4))
         self.Block2=nn.Sequential(make_layer(ResidualBlockNoBN, 1, num_feat=num_feat))
-        ##μí·?±?ìáì??÷
         self.feat_extract = nn.Sequential(nn.Conv2d(3, self.n_feats0, 3, 1, 1))
-        ###to 2D
         self.feat_extract1 = nn.Sequential(nn.Conv2d(3, self.n_feats0, 3, 1, 1))
-        #self.orb1 = TFR_UNet(self.n_feats0, self.n_feats, kernel_size=3, reduction=4, act=nn.PReLU(), bias=False, scale_unetfeats=0)
         self.conv_last =  nn.Sequential(nn.Conv2d(self.n_feats0,3, 3, 1, 1),nn.Sigmoid())
         self.conv_last1 =  nn.Sequential(nn.Conv2d(self.n_feats0,3, 3, 1, 1),nn.Sigmoid())
         self.dyd= DynamicDWConv(self.num_feat*16, 3, 1, self.num_feat*16)
-        #self.orb2_4 = TFR_UNet(self.n_feats0, self.n_feats, kernel_size=3, reduction=4, act=nn.PReLU(), bias=False, scale_unetfeats=0)
-        #self.orb2_7 = TFR_UNet(self.n_feats0*4, self.n_feats*4, kernel_size=3, reduction=4, act=nn.PReLU(), bias=False, scale_unetfeats=0)
-        #self.orb2_8 = TFR_UNet(self.n_feats0, self.n_feats, kernel_size=3, reduction=4, act=nn.PReLU(), bias=False, scale_unetfeats=0)
-        #self.conv_last2 =  nn.Sequential(nn.Conv3d(num_feat, 3, (1, 3, 3), 1, (0, 1, 1), bias=True),nn.Sigmoid())
         self.bias = nn.Parameter(torch.zeros(self.num_feat*16))
     def stageA00(self,x0):
         x0=self.A1(x0)
@@ -54,23 +40,16 @@ class Deblur_samll(nn.Module):
         x_out = self.conv_last1(x0)
         return x_out
     def model_B(self,L,S,b):
-         #S;lrs_mid_4_00
-         #L:lrs_aft 
          pixdown = torch.nn.PixelUnshuffle(4)
          pixup = torch.nn.PixelShuffle(2)
          L_d=pixdown(L) 
          S_d=pixdown(S) 
-         #s_d=rearange(b)
-         #s_d_weight=self.dyd()
          mid=[]
-         ##
          for i in range(b):
-             S_d_weight=self.dyd(S_d[i].unsqueeze(0))#[1,384]
+             S_d_weight=self.dyd(S_d[i].unsqueeze(0))
              m=F.conv2d(L_d[i].unsqueeze(0), S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
              mid.append(m)
-         #mid_feature=F.conv2d(L_d, S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
          mid=torch.stack(mid)
-         #print('******mid',mid.shape)
          out=pixup(mid)
          return out
     def model_B2(self,L,S,b):
@@ -78,51 +57,23 @@ class Deblur_samll(nn.Module):
          pixdown = torch.nn.PixelUnshuffle(2)
          pixdown2 = torch.nn.PixelUnshuffle(4)
          L_d=pixdown(L)
-         #print('******L_d',L_d.shape) 
          S_d=pixdown2(S)
-         #print('******S_d',S_d.shape)
          mid=[]
          for i in range(b):
-             #print('******S_d1',S_d[i].unsqueeze(0).shape)
-             S_d_weight=self.dyd(S_d[i].unsqueeze(0))#[1,384]
-             #print('******L_d[i]',L_d[i].unsqueeze(0).shape)   ###
+             S_d_weight=self.dyd(S_d[i].unsqueeze(0))
              m=F.conv2d(L_d[i].unsqueeze(0), S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
              mid.append(m)
-         #mid_feature=F.conv2d(L_d, S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
          mid=torch.stack(mid)
-         #print('******mid',mid.shape)
          out=pixup(mid)
          return out
     def forward(self, lrs):
         b, t, c, h, w = lrs.size()
-        # time_start = time.time()
-        # print(lrs.size())
-        # 1lrsè??D??2?ì??÷
-        lrs_mid=lrs[:,t//2]#btchw￡?è??D??t//2
-        #print("lrs_mid is what",lrs_mid[:,0,0,0]*2.56)
-        #print("fenshu*********",fenshu)
-        #jiangcaiyang *4 =128*128
-        #scale_factor = (1, 1, 0.25, 0.25) //
-        ##mid down 4 
-        #
-        #lrs_mid_4 = F.interpolate(lrs_mid, scale_factor=scale_factor, mode='bilinear',align_corners=False)
+        lrs_mid=lrs[:,t//2]
         lrs_mid_4 = F.interpolate(lrs_mid, scale_factor=0.25, mode='bilinear', align_corners=False)
-        #ìáè? lrs_mid_4ì??÷  
-        lrs_mid_4_0 = self.feat_extract(lrs_mid_4) # 3±?24
+        lrs_mid_4_0 = self.feat_extract(lrs_mid_4) 
         lrs3d=self.feat_extract1(rearrange(lrs, 'b t c h w -> (b t) c h w')) 
-        #pass by stage00 
         lrs3d=rearrange(lrs3d, '(b t) c h w -> b t c h w',b=b)
-        lrs_mid_4_00=self.stageA00(lrs_mid_4_0)  #
-        #lrs3d = rearrange(lrs3d,'b c t h w -> b t c h w')
-        #keep lrs3d =bt
-        #Large 3image fea extrac   
-        #change 3d to 2d 
-        #lrs3d=self.feat_extractor(rearrange(lrs, 'b t c h w -> (b t) c h w'))
-        #print('lrs3d.shape',lrs3d.shape)
-        ###3 dim feature map div
-        #piexunshuffle???ü????￡???á?
-        #qingyibiegai fout=self.model_B(lrs3d,lrs_mid_4_00,b,t)
-        #lrs3d=bt,will change
+        lrs_mid_4_00=self.stageA00(lrs_mid_4_0) 
         for i in range(t):
             lrs_=lrs3d[:,i]
             f_ele=self.model_B(lrs_,lrs_mid_4_00,b)
@@ -130,19 +81,10 @@ class Deblur_samll(nn.Module):
                 f_out=f_ele
             else:
                 f_out=torch.cat((f_out,f_ele),dim=1)
-        
-                #[2, 3, 96, 512, 512]
-        #print('#############f_out',f_out.shape)
-        ##
         lrs3d_B = rearrange(f_out, 'b t c h w -> (b t) c h w')
-        lrs3d_StageB1 = self.stageB10(lrs3d_B)  ##pass by [3,3]conv
-        #lrs3d_StageB1=self.stageB10(lrs3d_B) #pass by [1,3,3] conv
-        #print('#############lrs3d_StageB1',lrs3d_StageB1)
-        #lrs_mid?-1y4??TFR_UNetμ?μ??????á1?,ì??÷ò?2?·?è￥èúo?￡?ò?2?·?è￥éú3éGT
-        ##### 
+        lrs3d_StageB1 = self.stageB10(lrs3d_B) 
         delivery_4_fea,restore_4_out= self.stageA0(lrs_mid_4_00)
         lrs3d_B2 = rearrange(lrs3d_StageB1, '(b t) c h w -> b t c h w',b=b)
-        #####
         for i in range(t):
             lrs_=lrs3d_B2[:,i]
             f_ele=self.model_B2(lrs_,delivery_4_fea,b)
@@ -150,27 +92,10 @@ class Deblur_samll(nn.Module):
                 f_out=f_ele
             else:
                 f_out=torch.cat((f_out,f_ele),dim=1)
-        #print('#############f_out2',f_out.shape)
-        lrs3d_B2 = rearrange(f_out, 'b t c h w -> (b t) c h w')
-        ##×?±??-1ystageB11()   
+        lrs3d_B2 = rearrange(f_out, 'b t c h w -> (b t) c h w') 
         lrs3d_StageB1=self.stageB11(lrs3d_B2)#b*t c h w'
         output=rearrange(lrs3d_StageB1, '(b t) c h w -> b t c h w',b=b)
-        # f1=self.model_B2(f1_out,delivery_4_fea)
-        # f2=self.model_B2(f2_out,delivery_4_fea)
-        # f3=self.model_B2(f3_out,delivery_4_fea)
-        # f1_out=self.stageB1(f1).unsqueeze(1)
-        # f2_out=self.stageB1(f2).unsqueeze(1)
-        # f3_out=self.stageB1(f3).unsqueeze(1) 
-        ##delivery_4_fea??μY?a?a?é??ì??÷??μ??í?yéú3é￡?restore_4_outá?×?è￥????loss
-        ##coreweightó?3?????èμ?ì??÷í???DD?í?y￡?????D??￠ìáè?á?￡?????32???í?y2?1?￡??aD??￠ì?éùá??￡
-        # output=torch.cat((f1_out,f2_out,f3_out),dim=1)
-        #print('restore_4_out.shape()',restore_4_out.shape)
-        #print('output.shape()',output.shape)
-        return output,restore_4_out##########outputèy???óí?μ??????á1?￡?restore_4_outD?í??????á1?
-        #x = F.conv2d(x.reshape(1, -1, h, w), weight, self.bias.repeat(b), stride=self.stride, padding=self.padding, groups=b * self.groups) 
-        #lrs_feature = self.feat_extractor(rearrange(lrs, 'b t c h w -> b c t h w'))     # b c t h w
-        #//èyí?μàì??÷ìáè?oó￡?òa2?òa?èpixel shuff￡?í??1í?μàêy￡? ?±?ó?ù?Y?é??ì??÷ìáê???DD?í?y￡?oóD??ù??DDrefine
-        #sam_features0, sam_features = self.stage0(x0)
+        return output,restore_4_out
 class LayerNorm2d(nn.Module):
     def __init__(self, channels, eps=1e-6):
         super(LayerNorm2d, self).__init__()
