@@ -77,6 +77,7 @@ If you prepare your own dataset, please follow the following form like UEVB:
         |--video n
 ```
 #### Training
+Attention:When using the small model code, please copy the small model code ```deblur_arch_small. py``` to ```deblur_arch. py``` and change the class name ```class Deblur_small (nn. Module):``` to ```class Deblur (nn. Module):```
 - Download training dataset like above form.
 - Run the following commands:
 ```
