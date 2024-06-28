@@ -42,8 +42,6 @@ class Deblur(nn.Module):
         x_out = self.conv_last2(x0)
         return x_out
     def model_B(self,L,S,b):
-         #S;lrs_mid_4_00
-         #L:lrs_aft 
          pixdown = torch.nn.PixelUnshuffle(4)
          pixup = torch.nn.PixelShuffle(2)
          L_d=pixdown(L) 
@@ -63,34 +61,24 @@ class Deblur(nn.Module):
          pixdown = torch.nn.PixelUnshuffle(2)
          pixdown2 = torch.nn.PixelUnshuffle(4)
          L_d=pixdown(L)
-         #print('******L_d',L_d.shape) 
          S_d=pixdown2(S)
-         #print('******S_d',S_d.shape)
          mid=[]
          for i in range(b):
-             #print('******S_d1',S_d[i].unsqueeze(0).shape)
              S_d_weight=self.dyd(S_d[i].unsqueeze(0))#[1,384]
-             #print('******L_d[i]',L_d[i].unsqueeze(0).shape)   ###
              m=F.conv2d(L_d[i].unsqueeze(0), S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
              mid.append(m)
          #mid_feature=F.conv2d(L_d, S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
          mid=torch.stack(mid)
-         #print('******mid',mid.shape)
          out=pixup(mid)
          return out
     def forward(self, lrs):
         b, t, c, h, w = lrs.size()
-        lrs_mid=lrs[:,t//2]#btchw，取中间t//2
-        ##mid down 4  
+        lrs_mid=lrs[:,t//2]
         lrs_mid_4 = F.interpolate(lrs_mid, scale_factor=0.25, mode='bilinear', align_corners=False)
-        #提取 lrs_mid_4特征  
-        lrs_mid_4_0 = self.feat_extract(lrs_mid_4) # 3变24
-        #pass by stage00 
-        lrs_mid_4_00=self.stageA00(lrs_mid_4_0)  #主要这时候也是128了，这个效果感觉就打折扣
-        #Large 3image fea extrac   
+        lrs_mid_4_0 = self.feat_extract(lrs_mid_4) 
+        lrs_mid_4_00=self.stageA00(lrs_mid_4_0)   
         lrs3d=self.feat_extractor(rearrange(lrs, 'b t c h w -> b c t h w'))
         lrs3d = rearrange(lrs3d,'b c t h w -> b t c h w')
-        ###3 dim feature map div
         for i in range(t):
             lrs_=lrs3d[:,i]
             f_ele=self.model_B(lrs_,lrs_mid_4_00,b)
@@ -102,7 +90,6 @@ class Deblur(nn.Module):
         lrs3d_B = rearrange(f_out, 'b t c h w -> b c t h w')
         lrs3d_StageB1=self.stageB10(lrs3d_B) #pass by [1,3,3] conv
         lrs3d_B2 = rearrange(lrs3d_StageB1, 'b c t h w -> b t c h w')
-        #####
         delivery_4_fea,restore_4_out= self.stageA0(lrs_mid_4_00)
         for i in range(t):
             lrs_=lrs3d_B2[:,i]
@@ -114,7 +101,7 @@ class Deblur(nn.Module):
         lrs3d_B2 = rearrange(f_out, 'b t c h w -> b c t h w')
         lrs3d_StageB1=self.stageB11(lrs3d_B2)#b c t h w'
         output=rearrange(lrs3d_StageB1, 'b c t h w -> b t c h w')
-        return output,restore_4_out##########output三张大图的增强结果，restore_4_out小图增强结果
+        return output,restore_4_out
         
 class LayerNorm2d(nn.Module):
     def __init__(self, channels, eps=1e-6):
