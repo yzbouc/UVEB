@@ -1,0 +1,37 @@
+name: DVD_f25
+model_type: VideoRecurrentModel
+scale: 1
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+datasets:
+  test_1:  # the 1st test dataset
+    name: DVD
+    type: VideoRecurrentSplitClipsTestDataset
+    dataroot_gt: /media/xbm/data/VideoDeblur_Dataset/DVD/DVD/test/gt
+    dataroot_lq: /media/xbm/data/VideoDeblur_Dataset/DVD/DVD/test/blur
+    cache_data: False
+    io_backend:
+      type: disk
+
+    num_frame: 25
+    num_overlap: 0
+
+# network structures
+network_g:
+  type: Deblur
+  num_feat: 64
+  num_block: 15
+
+# path
+path:
+  pretrain_network_g: experiments/DVD.pth
+  strict_load_g: true
+
+# validation settings
+val:
+  save_img: true
+  flip_seq: false
+  suffix: ~  # add suffix to saved images, if None, use exp name
+
+  metrics: ~

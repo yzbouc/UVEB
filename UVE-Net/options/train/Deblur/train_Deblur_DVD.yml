@@ -1,0 +1,113 @@
+# general settings
+name: Baseline_DVD
+model_type: VideoRecurrentModel
+scale: 1
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: DVD
+    type: DVDRecurrentDataset
+    dataroot_gt: /media/xbm/data/VideoDeblur_Dataset/DVD/DVD/train/gt
+    dataroot_lq: /media/xbm/data/VideoDeblur_Dataset/DVD/DVD/train/blur
+    meta_info_file_train: basicsr/data/meta_info/meta_info_DVD_GT.txt
+    test_mode: False
+    io_backend:
+      type: disk
+
+    num_frame: 15
+    gt_size: 256
+    interval_list: [1]
+    random_reverse: false
+    use_flip: true
+    use_rot: true
+
+    # data loader
+    use_shuffle: true
+    num_worker_per_gpu: 4
+    batch_size_per_gpu: 2
+    dataset_enlarge_ratio: 200
+    prefetch_mode: ~
+
+  val:
+    name: DVD
+    type: VideoRecurrentSplitClipsTestDataset
+    dataroot_gt: /media/xbm/data/VideoDeblur_Dataset/DVD/DVD/test/gt
+    dataroot_lq: /media/xbm/data/VideoDeblur_Dataset/DVD/DVD/test/blur
+
+    cache_data: false
+    io_backend:
+      type: disk
+
+    num_frame: 10
+    num_overlap: 0
+
+# network structures
+network_g:
+  type: Deblur
+  num_feat: 64
+  num_block: 15
+
+# path
+path:
+  pretrain_network_g: ~
+  strict_load_g: true
+  resume_state: ~
+
+# training settings
+train:
+  optim_g:
+    type: AdamW
+    lr: !!float 2e-4
+    weight_decay: !!float 1e-4
+    betas: [0.9, 0.999]
+
+  scheduler:
+    type: CosineAnnealingRestartLR
+    periods: [300000]
+    restart_weights: [1]
+    eta_min: !!float 1e-7
+
+  total_iter: 300000
+  warmup_iter: -1  # no warm up
+
+  # losses
+  pixel_opt:
+    type: CharbonnierLoss
+    loss_weight: 1.0
+    reduction: mean
+
+  fft_opt:
+    type: FFT
+    loss_weight: 0.1
+    reduction: mean
+
+# validation settings
+val:
+  val_freq: 10000
+  flip_seq: false
+  save_img: false
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: 1000
+  use_tb_logger: false
+  wandb:
+    project: ~
+    resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
+
+find_unused_parameters: true
