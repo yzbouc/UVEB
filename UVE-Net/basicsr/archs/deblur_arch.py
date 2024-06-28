@@ -51,9 +51,7 @@ class Deblur(nn.Module):
              S_d_weight=self.dyd(S_d[i].unsqueeze(0))#[1,384]
              m=F.conv2d(L_d[i].unsqueeze(0), S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
              mid.append(m)
-         #mid_feature=F.conv2d(L_d, S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
          mid=torch.stack(mid)
-         #print('******mid',mid.shape)
          out=pixup(mid)
          return out
     def model_B2(self,L,S,b):
@@ -67,7 +65,6 @@ class Deblur(nn.Module):
              S_d_weight=self.dyd(S_d[i].unsqueeze(0))#[1,384]
              m=F.conv2d(L_d[i].unsqueeze(0), S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
              mid.append(m)
-         #mid_feature=F.conv2d(L_d, S_d_weight, self.bias.repeat(1), stride=1, padding=1, groups=self.num_feat*16)
          mid=torch.stack(mid)
          out=pixup(mid)
          return out
@@ -188,10 +185,6 @@ def conv(in_channels, out_channels, kernel_size, bias=False, stride = 1):
 class DownSample(nn.Module):
     def __init__(self, in_channels, s_factor):
         super(DownSample, self).__init__()
-        # self.down = nn.Sequential(nn.Upsample(scale_factor=0.5, mode='bilinear', align_corners=False),
-        #                           nn.Conv2d(in_channels, in_channels + s_factor, 1, stride=1, padding=0, bias=False))
-        # self.down = nn.Sequential(nn.Conv2d(in_channels, in_channels + s_factor, kernel_size=3, stride=2, padding=1, bias=True),
-        #                    nn.PReLU())
         self.down = nn.Conv2d(in_channels, in_channels + s_factor, kernel_size=3, stride=2, padding=1, bias=True)
     def forward(self, x):
         x = self.down(x)
