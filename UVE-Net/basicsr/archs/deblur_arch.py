@@ -14,11 +14,7 @@ class Deblur(nn.Module):
         super().__init__()
         # extractor & reconstruction
         self.feat_extractor = nn.Conv3d(3, num_feat, (1, 3, 3), 1, (0, 1, 1), bias=True)
-        #self.recons = nn.Conv3d(num_feat, 3, (1, 3, 3), 1, (0, 1, 1), bias=True)
         ## 
-        ## mini_restore
-        #restor-，n_feats0-kao lv32 or xian 24
-        #xian 3bian-24,look xia ,ruhe jinxing
         self.n_feats0=num_feat
         self.n_feats=num_feat
         self.num_feat=num_feat
@@ -26,14 +22,9 @@ class Deblur(nn.Module):
         self.A2=nn.Sequential(make_layer(ResidualBlockNoBN, 30, num_feat=num_feat))
         self.Block1=nn.Sequential(make_layer(ResidualBlockNoBN2D, 15, num_feat=num_feat*4))
         self.Block2=nn.Sequential(make_layer(ResidualBlockNoBN2D, 5, num_feat=num_feat))
-        ##低分辨提特征
         self.feat_extract = nn.Sequential(nn.Conv2d(3, self.n_feats0, 3, 1, 1))
-        #self.orb1 = TFR_UNet(self.n_feats0, self.n_feats, kernel_size=3, reduction=4, act=nn.PReLU(), bias=False, scale_unetfeats=0)
         self.conv_last =  nn.Sequential(nn.Conv2d(self.n_feats0,3, 3, 1, 1),nn.Sigmoid())
         self.dyd= DynamicDWConv(self.num_feat*16, 3, 1, self.num_feat*16)
-        #self.orb2_4 = TFR_UNet(self.n_feats0, self.n_feats, kernel_size=3, reduction=4, act=nn.PReLU(), bias=False, scale_unetfeats=0)
-        #self.orb2_7 = TFR_UNet(self.n_feats0*4, self.n_feats*4, kernel_size=3, reduction=4, act=nn.PReLU(), bias=False, scale_unetfeats=0)
-        #self.orb2_8 = TFR_UNet(self.n_feats0, self.n_feats, kernel_size=3, reduction=4, act=nn.PReLU(), bias=False, scale_unetfeats=0)
         self.conv_last2 =  nn.Sequential(nn.Conv3d(num_feat, 3, (1, 3, 3), 1, (0, 1, 1), bias=True),nn.Sigmoid())
         self.bias = nn.Parameter(torch.zeros(self.num_feat*16))
     def stageA00(self,x0):
@@ -89,16 +80,8 @@ class Deblur(nn.Module):
          return out
     def forward(self, lrs):
         b, t, c, h, w = lrs.size()
-        # time_start = time.time()
-        # print(lrs.size())
-        # 1lrs取中间层特征
         lrs_mid=lrs[:,t//2]#btchw，取中间t//2
-        #print("lrs_mid is what",lrs_mid[:,0,0,0]*2.56)
-        #print("fenshu*********",fenshu)
-        #jiangcaiyang *4 =128*128
-        #scale_factor = (1, 1, 0.25, 0.25) //
         ##mid down 4  
-        #lrs_mid_4 = F.interpolate(lrs_mid, scale_factor=scale_factor, mode='bilinear',align_corners=False)
         lrs_mid_4 = F.interpolate(lrs_mid, scale_factor=0.25, mode='bilinear', align_corners=False)
         #提取 lrs_mid_4特征  
         lrs_mid_4_0 = self.feat_extract(lrs_mid_4) # 3变24
@@ -106,10 +89,8 @@ class Deblur(nn.Module):
         lrs_mid_4_00=self.stageA00(lrs_mid_4_0)  #主要这时候也是128了，这个效果感觉就打折扣
         #Large 3image fea extrac   
         lrs3d=self.feat_extractor(rearrange(lrs, 'b t c h w -> b c t h w'))
-        #print('lrs3d.shape',lrs3d.shape)
         lrs3d = rearrange(lrs3d,'b c t h w -> b t c h w')
         ###3 dim feature map div
-        #piexunshuffle只能四维，算了
         for i in range(t):
             lrs_=lrs3d[:,i]
             f_ele=self.model_B(lrs_,lrs_mid_4_00,b)
@@ -118,28 +99,11 @@ class Deblur(nn.Module):
             else:
                 f_out=torch.cat((f_out,f_ele),dim=1)
                 #[2, 3, 96, 512, 512]
-        #print('#############f_out',f_out.shape)
-        ##用三维卷积进行处理，应该速度更快
         lrs3d_B = rearrange(f_out, 'b t c h w -> b c t h w')
         lrs3d_StageB1=self.stageB10(lrs3d_B) #pass by [1,3,3] conv
-        #print('#############lrs3d_StageB1',lrs3d_StageB1)
         lrs3d_B2 = rearrange(lrs3d_StageB1, 'b c t h w -> b t c h w')
-        # lrs_bef=lrs3d[:3,0]
-        # #print('lrs_bef.shape',lrs_bef.shape)
-        # lrs_aft=lrs3d[:3,2]
-        # lrs_mid_3=lrs3d[:3,1]
-        ##lrs_mid00 and,b,m,aftpass to B model 
-        # f1=self.model_B(lrs_bef,lrs_mid_4_00)
-        # f2=self.model_B(lrs_mid_3,lrs_mid_4_00)
-        # f3=self.model_B(lrs_aft,lrs_mid_4_00)
-        #f1,f2,f3 passby stage10
-        # f1_out=self.stageB10(f1)
-        # f2_out=self.stageB10(f2)
-        # f3_out=self.stageB10(f3)
-        #lrs_mid经过4个TFR_UNet得到恢复结果,特征一部分去融合，一部分去生成GT
         #####
         delivery_4_fea,restore_4_out= self.stageA0(lrs_mid_4_00)
-        #####准备获取第二次的卷积核并卷积
         for i in range(t):
             lrs_=lrs3d_B2[:,i]
             f_ele=self.model_B2(lrs_,delivery_4_fea,b)
@@ -147,27 +111,10 @@ class Deblur(nn.Module):
                 f_out=f_ele
             else:
                 f_out=torch.cat((f_out,f_ele),dim=1)
-        #print('#############f_out2',f_out.shape)
         lrs3d_B2 = rearrange(f_out, 'b t c h w -> b c t h w')
-        ##准备经过stageB11() 
         lrs3d_StageB1=self.stageB11(lrs3d_B2)#b c t h w'
         output=rearrange(lrs3d_StageB1, 'b c t h w -> b t c h w')
-        # f1=self.model_B2(f1_out,delivery_4_fea)
-        # f2=self.model_B2(f2_out,delivery_4_fea)
-        # f3=self.model_B2(f3_out,delivery_4_fea)
-        # f1_out=self.stageB1(f1).unsqueeze(1)
-        # f2_out=self.stageB1(f2).unsqueeze(1)
-        # f3_out=self.stageB1(f3).unsqueeze(1) 
-        ##delivery_4_fea传递——干净特征指导卷积生成，restore_4_out留着去计算loss
-        ##coreweight与3个维度的特征图进行卷积，考虑信息提取量，仅仅32个卷积不够，这信息太少了。
-        # output=torch.cat((f1_out,f2_out,f3_out),dim=1)
-        #print('restore_4_out.shape()',restore_4_out.shape)
-        #print('output.shape()',output.shape)
         return output,restore_4_out##########output三张大图的增强结果，restore_4_out小图增强结果
-        #x = F.conv2d(x.reshape(1, -1, h, w), weight, self.bias.repeat(b), stride=self.stride, padding=self.padding, groups=b * self.groups) 
-        #lrs_feature = self.feat_extractor(rearrange(lrs, 'b t c h w -> b c t h w'))     # b c t h w
-        #//三通道特征提取后，要不要先pixel shuff，拓展通道数？ 直接根据干净特征提示进行卷积，后续再进行refine
-        #sam_features0, sam_features = self.stage0(x0)
         
 class LayerNorm2d(nn.Module):
     def __init__(self, channels, eps=1e-6):
