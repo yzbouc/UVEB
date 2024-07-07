@@ -46,11 +46,11 @@ videos, UVE-Net completes video enhancement better. Experiments show the effecti
 - **2024.07.03:** Download website for supplementary materials of the paper: https://openaccess.thecvf.com/content/CVPR2024/supplemental/Xie_UVEB_A_Large-scale_CVPR_2024_supplemental.pdf
 - Download website for the paper:  https://openaccess.thecvf.com/content/CVPR2024/papers/Xie_UVEB_A_Large-scale_Benchmark_and_Baseline_Towards_Real-World_Underwater_Video_CVPR_2024_paper.pdf
 - **2024.06.25:** Code Release.
-- **2024.06.17:** The UVEB dataset has been published. 
-- **2024.02.27:** Accepted by CVPR 2024!
+- **2024.06.17:** The UVEB dataset has been published.
 - Test dataset is aviable at https://pan.baidu.com/s/1qPLYZ7tHJm2YeNqh8wxK1Q.  Extraction code: 1234
 - Train dataset is aviable at https://pan.baidu.com/s/1A-Z6kbYAiCy95d_DLrdDBg. Exreaction code:1234
 - For researchers outside of China, the full dataset can be aviable at https://terabox.com/s/1Mmz6ZAUv6h2GZFKZybD5mg.
+- **2024.02.27:** Accepted by CVPR 2024!
 ## Dependencies
 - Linux (Tested on Ubuntu 18.04)
 - Python 3 (Recommend to use Anaconda)
