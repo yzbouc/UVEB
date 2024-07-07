@@ -40,7 +40,7 @@ videos, UVE-Net completes video enhancement better. Experiments show the effecti
 > ![Alt text2](/Pictures/8.png)
 > 
 ## Update
-- **2024.07.03:** The quality score information of the videos has been released.
+- **2024.07.07:** The quality score information of the videos has been released.
 - **2024.07.03:** Download website for supplementary materials of the paper: https://openaccess.thecvf.com/content/CVPR2024/supplemental/Xie_UVEB_A_Large-scale_CVPR_2024_supplemental.pdf
 - Download website for the paper:  https://openaccess.thecvf.com/content/CVPR2024/papers/Xie_UVEB_A_Large-scale_Benchmark_and_Baseline_Towards_Real-World_Underwater_Video_CVPR_2024_paper.pdf
 - **2024.06.25:** Code Release.
